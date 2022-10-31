@@ -136,6 +136,9 @@ const bulkDelete = async (req, res) => {
   }
 };
 
+
+console.log("hi")
+
 module.exports = {
   addUser,
   getAll,
