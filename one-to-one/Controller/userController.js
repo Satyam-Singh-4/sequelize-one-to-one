@@ -3,16 +3,25 @@ const user = db.user;
 const address = db.address;
 
 const addUser = async (req, res) => {
+  const t = await db.sequelize.transaction();
   try {
-    const resp = await user.create(req.body, {
-      include: {
-        model: address,
+    const resp = await user.create(
+      req.body,
+      {
+        transaction: t,
       },
-    });
+      {
+        include: {
+          model: address,
+        },
+      }
+    );
+    await t.commit();
     res.status(200).json({
       result: resp,
     });
   } catch (error) {
+    await t.rollback();
     res.status(400).json({
       message: "unable to save",
     });
@@ -97,47 +106,58 @@ const bulkAdd = async (req, res) => {
   }
 };
 
+//bulk update
 const bulkupdate = async (req, res) => {
   try {
-    const id=req.body.id;
-    delete req.body.id
-    const resp = await user.bulkCreate(req.body, {
-      upsertKeys: [{ id: id }],
-
-      updateOnDuplicate: ["user_name","email"],
-    });
-
-    res.send(resp);
-
-    console.log(resp);
-    res.status(201).json({
-      result: "updated successfully" + resp,
+    const user1 = req.body;
+    var resp = 0;
+    for (let index = 0; index <= user1.length - 1; index++) {
+      const element = user1[index];
+      console.log(element);
+      resp = await user.update(element, {
+        where: {
+          id: element.id,
+        },
+      });
+    }
+    res.status(200).json({
+      result: resp,
+      message: "successfully updated",
     });
   } catch (error) {
     res.status(400).json({
       message: "unable to update the record",
-      res:error
+      res: error,
     });
   }
 };
+
+//bulk delete
 
 const bulkDelete = async (req, res) => {
   try {
-    const resp=await user.destroy({where:{
-
-    }})
+    const id1 = req.body;
+    var resp;
+    for (let index = 0; index <= id1.length - 1; index++) {
+      const element = id1[index];
+      console.log(element);
+      resp = await user.destroy({
+        where: {
+          id: element.id,
+        },
+      });
+    }
     res.status(201).json({
-        message:"deleted record::"+resp
-    })
+      message: "deleted record::" + resp,
+    });
   } catch (error) {
     res.status(400).json({
-      message: "unable to  the record"+error,
+      message: "unable to  the record" + error,
     });
   }
 };
 
-
-console.log("hi")
+console.log("hi");
 
 module.exports = {
   addUser,
