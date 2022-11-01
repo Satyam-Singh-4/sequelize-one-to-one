@@ -7,13 +7,14 @@ const addUser = async (req, res) => {
   try {
     const resp = await user.create(
       req.body,
-      {
-        transaction: t,
-      },
+
       {
         include: {
           model: address,
         },
+      },
+      {
+        transaction: t,
       }
     );
     await t.commit();
