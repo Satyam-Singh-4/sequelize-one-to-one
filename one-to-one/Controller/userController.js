@@ -91,16 +91,21 @@ const deleteDetails = async (req, res) => {
 };
 
 const bulkAdd = async (req, res) => {
+  const t=await db.sequelize.transaction()
   try {
     const resp = await user.bulkCreate(req.body, {
       include: {
         model: address,
       },
+    },{
+      transaction:t
     });
+   await t.commit()
     res.status(200).json({
       result: resp,
     });
   } catch (error) {
+    await t.rollback()
     res.status(400).json({
       message: "unable to save",
     });
